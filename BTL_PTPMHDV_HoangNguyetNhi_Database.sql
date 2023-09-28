@@ -1,4 +1,4 @@
-USE [master]
+USE BanAmthanh
 GO
 
 /****** Object:  Database [BanAmthanh]    Script Date: 23/09/2023 11:39:06 SA ******/
@@ -129,7 +129,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE TABLE [dbo].[Nguoidung](
-	[NguoidungID] [nchar](50) NOT NULL,
+	[NguoidungID] INT IDENTITY(1,1)  NOT NULL,
 	[hoten] [nvarchar](150) NULL,
 	[ngaysinh] [date] NULL,
 	[diachi] [nvarchar](250) NULL,
@@ -255,5 +255,236 @@ GO
 
 ALTER TABLE [dbo].[ChiTietHoaDon] CHECK CONSTRAINT [FK_ChiTietHoaDon_San_Pham]
 GO
+
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_nguoidung_create]    Script Date: 28/09/2023 8:37:44 SA ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_nguoidung_create]
+( 
+ @hoten          nvarchar(150) ,
+ @ngaysinh         date  ,
+ @diachi          nvarchar(250)  ,
+ @gioitinh         nvarchar(30)  ,
+ @email          varchar(150) ,
+ @taikhoan         varchar(30) ,
+ @matkhau         varchar(60)  ,
+ @role          varchar(30) 
+)
+AS
+    BEGIN
+      INSERT INTO Nguoidung
+                (
+					 hoten           ,
+					 ngaysinh          ,
+					 diachi           ,
+					 gioitinh           ,
+					 email           ,
+					 taikhoan         ,
+					 matkhau           ,
+					 role    
+				)
+                VALUES
+                (
+				 @hoten           ,
+				 @ngaysinh          ,
+				 @diachi           ,
+				 @gioitinh           ,
+				 @email           ,
+				 @taikhoan         ,
+				 @matkhau           ,
+				 @role 
+				);
+        SELECT '';
+    END;
+GO
+
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_nguoidung_delete_id]    Script Date: 28/09/2023 8:39:42 SA ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+create PROCEDURE [dbo].[sp_nguoidung_delete_id]
+(@nguoidung_id              nchar(50) 
+)
+AS
+    BEGIN
+		delete from Nguoidung where NguoidungID = @nguoidung_id;
+        SELECT '';
+    END;
+GO
+
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_nguoidung_get_by_id]    Script Date: 28/09/2023 8:41:38 SA ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_nguoidung_get_by_id](@nguoidung_id INT)
+AS
+    BEGIN
+        SELECT  NguoidungID               , 
+					 hoten           ,
+					 ngaysinh          ,
+					 diachi           ,
+					 gioitinh           ,
+					 email           ,
+					 taikhoan         ,
+					 matkhau           ,
+					 role      
+        FROM Nguoidung
+      where  NguoidungID = @nguoidung_id;
+    END;
+GO
+
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_nguoidung_get_by_username_password]    Script Date: 28/09/2023 8:43:24 SA ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_nguoidung_get_by_username_password](@taikhoan varchar(30), @matkhau varchar(60))
+AS
+    BEGIN
+        SELECT  NguoidungID               , 
+					 hoten           ,
+					 ngaysinh          ,
+					 diachi           ,
+					 gioitinh           ,
+					 email           ,
+					 taikhoan         ,
+					 role      
+        FROM Nguoidung
+      where  taikhoan = @taikhoan and matkhau = @matkhau ;
+    END;
+GO
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_nguoidung_search]    Script Date: 28/09/2023 8:50:20 SA ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_nguoidung_search] (@page_index  INT, 
+                                       @page_size   INT,
+									   @hoten nvarchar(150),
+									    @taikhoan varchar(30)
+									   )
+AS
+    BEGIN
+        DECLARE @RecordCount BIGINT;
+        IF(@page_size <> 0)
+            BEGIN
+                SET NOCOUNT ON;
+                        SELECT(ROW_NUMBER() OVER(
+                              ORDER BY u.hoten ASC)) AS RowNumber, 
+                             u.NguoidungID            , 
+							 u.hoten           ,
+							 u.ngaysinh          ,
+							 u.diachi           ,
+							 u.gioitinh           ,
+							 u.email           ,
+							 u.taikhoan         ,
+							 u.matkhau           ,
+							 u.role   
+                        INTO #Results1
+                        FROM Nguoidung AS u
+						WHERE (u.taikhoan <> 'Admin') and ((@hoten = '') OR (u.hoten LIKE '%' + @hoten + '%')) and  ((@taikhoan = '') OR (u.taikhoan = @taikhoan));
+                        SELECT @RecordCount = COUNT(*)
+                        FROM #Results1;
+                        SELECT *, 
+                               @RecordCount AS RecordCount
+                        FROM #Results1
+                        WHERE ROWNUMBER BETWEEN(@page_index - 1) * @page_size + 1 AND(((@page_index - 1) * @page_size + 1) + @page_size) - 1
+                              OR @page_index = -1;
+                        DROP TABLE #Results1; 
+            END;
+            ELSE
+            BEGIN
+                SET NOCOUNT ON;
+                         SELECT(ROW_NUMBER() OVER(
+                              ORDER BY u.hoten ASC)) AS RowNumber, 
+                             u.NguoidungID              , 
+							 u.hoten           ,
+							 u.ngaysinh          ,
+							 u.diachi           ,
+							 u.gioitinh           ,
+							 u.email           ,
+							 u.taikhoan         ,
+							 u.matkhau           ,
+							 u.role     
+                        INTO #Results2
+                        FROM Nguoidung AS u
+						WHERE (u.taikhoan <> 'Admin') and ((@hoten = '') OR (u.hoten LIKE '%' + @hoten + '%')) and  ((@taikhoan = '') OR (u.taikhoan = @taikhoan));
+                        SELECT @RecordCount = COUNT(*)
+                        FROM #Results2;
+                        SELECT *, 
+                               @RecordCount AS RecordCount
+                        FROM #Results2;
+                        DROP TABLE #Results2;
+        END;
+    END;
+GO
+
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_nguoidung_update]    Script Date: 28/09/2023 8:52:37 SA ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE PROCEDURE [dbo].[sp_nguoidung_update]
+(@nguoidung_id             nchar(50), 
+ @hoten          nvarchar(150) ,
+ @ngaysinh         date  ,
+ @diachi          nvarchar(250)  ,
+ @gioitinh         nvarchar(30)  ,
+ @email          varchar(150) ,
+ @taikhoan         varchar(30) ,
+ @matkhau         varchar(60)  ,
+ @role          varchar(30)
+)
+AS
+    BEGIN
+   update Nguoidung set 
+				hoten= @hoten           ,
+				ngaysinh= @ngaysinh          ,
+				diachi= @diachi           ,
+				gioitinh= @gioitinh           ,
+				email= @email           ,
+				matkhau = @matkhau           ,
+				role= @role 
+				where NguoidungID = @nguoidung_id;
+        SELECT '';
+    END;
+GO
+
+
+
 
 

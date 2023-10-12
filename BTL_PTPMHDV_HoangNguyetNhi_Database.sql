@@ -148,37 +148,68 @@ GO
 USE [BanAmthanh]
 GO
 
-/****** Object:  Table [dbo].[San_Pham]    Script Date: 23/09/2023 11:39:56 SA ******/
+USE [BanAmthanh]
+GO
+
+/****** Object:  Table [dbo].[SanPham]    Script Date: 12/10/2023 9:15:19 SA ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE TABLE [dbo].[San_Pham](
+CREATE TABLE [dbo].[SanPham](
 	[MaSanPham] [nvarchar](50) NOT NULL,
 	[MaChuyenMuc] [nvarchar](50) NULL,
 	[TenSanPham] [nvarchar](150) NULL,
 	[AnhSanPham] [nvarchar](350) NULL,
-	[Gia] [int] NULL,
-	[SoLuong] [int] NULL,
- CONSTRAINT [PK_San_Pham] PRIMARY KEY CLUSTERED 
+	[Gia] [decimal](18, 0) NULL,
+	[Giagiam] [decimal](18, 0) NULL,
+ CONSTRAINT [PK_SanPham] PRIMARY KEY CLUSTERED 
 (
 	[MaSanPham] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-ALTER TABLE [dbo].[San_Pham]  WITH CHECK ADD  CONSTRAINT [FK_San_Pham_Chuyenmuc] FOREIGN KEY([MaChuyenMuc])
+ALTER TABLE [dbo].[SanPham]  WITH CHECK ADD  CONSTRAINT [FK_SanPham_Chuyenmuc] FOREIGN KEY([MaChuyenMuc])
 REFERENCES [dbo].[Chuyenmuc] ([MaChuyenMuc])
 GO
 
-ALTER TABLE [dbo].[San_Pham] CHECK CONSTRAINT [FK_San_Pham_Chuyenmuc]
+ALTER TABLE [dbo].[SanPham] CHECK CONSTRAINT [FK_SanPham_Chuyenmuc]
+GO
+USE [BanAmthanh]
 GO
 
-USE [BanAmthanh]
+/****** Object:  Table [dbo].[ChiTietSanPham]    Script Date: 12/10/2023 9:15:51 SA ******/
+SET ANSI_NULLS ON
 GO
-USE [BanAmthanh]
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[ChiTietSanPham](
+	[MaChiTietSanPham] [nvarchar](50) NOT NULL,
+	[MaSanPham] [nvarchar](50) NOT NULL,
+	[MoTa] [nvarchar](max) NULL,
+	[Soluong] [int] NULL,
+	[Donvi] [nvarchar](50) NULL,
+	[Baohanh] [nvarchar](150) NULL,
+	[Tinhtrang] [nvarchar](100) NULL,
+	[AnhSP] [nvarchar](350) NULL,
+	[Chitiet] [nvarchar](max) NULL,
+ CONSTRAINT [PK_ChiTietSanPham] PRIMARY KEY CLUSTERED 
+(
+	[MaChiTietSanPham] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[ChiTietSanPham]  WITH CHECK ADD  CONSTRAINT [FK_ChiTietSanPham_SanPham] FOREIGN KEY([MaSanPham])
+REFERENCES [dbo].[SanPham] ([MaSanPham])
+GO
+
+ALTER TABLE [dbo].[ChiTietSanPham] CHECK CONSTRAINT [FK_ChiTietSanPham_SanPham]
 GO
 
 /****** Object:  Table [dbo].[Chuyenmuc]    Script Date: 23/09/2023 11:40:33 SA ******/
@@ -266,7 +297,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[sp_nguoidung_create]
+
+ALTER PROCEDURE [dbo].[sp_nguoidung_create]
 ( 
  @hoten          nvarchar(150) ,
  @ngaysinh         date  ,
@@ -275,7 +307,7 @@ CREATE PROCEDURE [dbo].[sp_nguoidung_create]
  @email          varchar(150) ,
  @taikhoan         varchar(30) ,
  @matkhau         varchar(60)  ,
- @role          varchar(30) 
+ @roles          varchar(30) 
 )
 AS
     BEGIN
@@ -288,7 +320,7 @@ AS
 					 email           ,
 					 taikhoan         ,
 					 matkhau           ,
-					 role    
+					 roles  
 				)
                 VALUES
                 (
@@ -299,7 +331,7 @@ AS
 				 @email           ,
 				 @taikhoan         ,
 				 @matkhau           ,
-				 @role 
+				 @roles
 				);
         SELECT '';
     END;
@@ -335,7 +367,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[sp_nguoidung_get_by_id](@nguoidung_id INT)
+ALTER PROCEDURE [dbo].[sp_nguoidung_get_by_id](@nguoidung_id INT)
 AS
     BEGIN
         SELECT  NguoidungID               , 
@@ -346,7 +378,7 @@ AS
 					 email           ,
 					 taikhoan         ,
 					 matkhau           ,
-					 role      
+					 roles      
         FROM Nguoidung
       where  NguoidungID = @nguoidung_id;
     END;
@@ -362,7 +394,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[sp_nguoidung_get_by_username_password](@taikhoan varchar(30), @matkhau varchar(60))
+ALTER PROCEDURE [dbo].[sp_nguoidung_get_by_username_password](@taikhoan varchar(30), @matkhau varchar(60))
 AS
     BEGIN
         SELECT  NguoidungID               , 
@@ -372,7 +404,8 @@ AS
 					 gioitinh           ,
 					 email           ,
 					 taikhoan         ,
-					 role      
+					 matkhau,
+					 roles      
         FROM Nguoidung
       where  taikhoan = @taikhoan and matkhau = @matkhau ;
     END;
@@ -387,7 +420,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[sp_nguoidung_search] (@page_index  INT, 
+ALTER PROCEDURE [dbo].[sp_nguoidung_search] (@page_index  INT, 
                                        @page_size   INT,
 									   @hoten nvarchar(150),
 									    @taikhoan varchar(30)
@@ -408,7 +441,7 @@ AS
 							 u.email           ,
 							 u.taikhoan         ,
 							 u.matkhau           ,
-							 u.role   
+							 u.roles  
                         INTO #Results1
                         FROM Nguoidung AS u
 						WHERE (u.taikhoan <> 'Admin') and ((@hoten = '') OR (u.hoten LIKE '%' + @hoten + '%')) and  ((@taikhoan = '') OR (u.taikhoan = @taikhoan));
@@ -434,7 +467,7 @@ AS
 							 u.email           ,
 							 u.taikhoan         ,
 							 u.matkhau           ,
-							 u.role     
+							 u.roles     
                         INTO #Results2
                         FROM Nguoidung AS u
 						WHERE (u.taikhoan <> 'Admin') and ((@hoten = '') OR (u.hoten LIKE '%' + @hoten + '%')) and  ((@taikhoan = '') OR (u.taikhoan = @taikhoan));
@@ -458,7 +491,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[sp_nguoidung_update]
+alter PROCEDURE [dbo].[sp_nguoidung_update]
 (@nguoidung_id             nchar(50), 
  @hoten          nvarchar(150) ,
  @ngaysinh         date  ,
@@ -478,11 +511,189 @@ AS
 				gioitinh= @gioitinh           ,
 				email= @email           ,
 				matkhau = @matkhau           ,
-				role= @role 
+				roles= @role 
 				where NguoidungID = @nguoidung_id;
         SELECT '';
     END;
 GO
+
+/****** Object:  StoredProcedure [dbo].[sp_Chuyenmuc_get_by_id]    Script Date: 12/10/2023 9:23:56 SA ******/
+CREATE PROCEDURE [dbo].[sp_Chuyenmuc_get_by_id](@machuyenmuc_id nvarchar(50))
+AS
+    BEGIN
+        SELECT  MaChuyenMuc              , 
+					 MaChuyenMucCha          ,
+					 TenChuyenMuc         ,
+					 NoiDung       
+        FROM Chuyenmuc
+      where  MaChuyenMuc = @machuyenmuc_id;
+    END;
+GO
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_chuyenmuc_create]    Script Date: 12/10/2023 9:28:24 SA ******/
+ALTER PROCEDURE [dbo].[sp_chuyenmuc_create]
+(@machuyenmuc             NVARCHAR(50), 
+ @machuyenmuc_cha       NVARCHAR(50), 
+ @tenchuyenmuc         NVARCHAR(50), 
+ @noidung           NVARCHAR(MAX),
+ @list_json_sanpham NVARCHAR(MAX),
+ @list_json_chitietsanpham NVARCHAR(MAX)
+)
+AS
+    BEGIN
+      INSERT INTO Chuyenmuc
+                (MaChuyenMuc, 
+                 MaChuyenMucCha, 
+                 TenChuyenMuc, 
+                 NoiDung          
+                )
+                VALUES
+                (@machuyenmuc, 
+                 @machuyenmuc_cha, 
+                 @tenchuyenmuc, 
+                 @noidung
+                );
+				SET @machuyenmuc = (SELECT SCOPE_IDENTITY());
+                IF(@list_json_sanpham IS NOT NULL)
+                    BEGIN
+						DECLARE @MaSanPham NVARCHAR(50);
+                        INSERT INTO SanPham
+						 (MaSanPham,
+						  MaChuyenMuc,
+						  TenSanPham,
+                          AnhSanPham, 
+                          Gia,
+						  Giagiam
+                        )
+                    SELECT @MaSanPham, 
+                           @machuyenmuc, 
+                            JSON_VALUE(p.value, '$.tenSanPham'), 
+                            JSON_VALUE(p.value, '$.anhSanPham'),
+							JSON_VALUE(p.value, '$.gia'),
+							JSON_VALUE(p.value, '$.giagiam')
+                    FROM OPENJSON(@list_json_sanpham) AS p;
+					SET @MaSanPham = (SELECT SCOPE_IDENTITY());
+					IF(@list_json_chitietsanpham IS NOT NULL)
+						BEGIN
+							INSERT INTO ChiTietSanPham
+								(MaChiTietSanPham,
+								MaSanPham,
+								MoTa,
+								Soluong, 
+								Donvi,
+								Baohanh,
+								Tinhtrang,
+								AnhSP,
+								Chitiet
+							)
+						SELECT JSON_VALUE(p.value, '$.maChiTietSanPham'), 
+								@MaSanPham, 
+								JSON_VALUE(p.value, '$.tenSanPham'), 
+								JSON_VALUE(p.value, '$.anhSanPham'),
+								JSON_VALUE(p.value, '$.gia'),
+								JSON_VALUE(p.value, '$.giagiam')
+						FROM OPENJSON(@list_json_sanpham) AS p;
+
+					END;
+				END;
+        SELECT '';
+    END;
+GO
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_chuyenmuc_search]    Script Date: 12/10/2023 9:33:24 SA ******/
+ALTER PROCEDURE [dbo].[sp_chuyenmuc_search] (@page_index  INT, 
+                                       @page_size   INT,
+									   @machuyenmuc Nvarchar(50),
+									   @machuyenmuccha  Nvarchar(50))
+AS
+    BEGIN
+        DECLARE @RecordCount BIGINT;
+        IF(@page_size <> 0)
+            BEGIN
+                SET NOCOUNT ON;
+                        SELECT(ROW_NUMBER() OVER(
+                              ORDER BY TenChuyenMuc ASC)) AS RowNumber, 
+                              i.MaChuyenMuc, 
+                              i.MaChuyenMucCha, 
+                              i.TenChuyenMuc , 
+                              i.NoiDung
+                        INTO #Results1
+                        FROM Chuyenmuc AS i
+					    WHERE ((@machuyenmuc = '') OR (i.MaChuyenMuc = @machuyenmuc)) and ((@machuyenmuccha = '') OR (i.MaChuyenMucCha = @machuyenmuccha));                   
+                        SELECT @RecordCount = COUNT(*)
+                        FROM #Results1;
+                        SELECT *, 
+                               @RecordCount AS RecordCount
+                        FROM #Results1
+                        WHERE ROWNUMBER BETWEEN(@page_index - 1) * @page_size + 1 AND(((@page_index - 1) * @page_size + 1) + @page_size) - 1
+                              OR @page_index = -1;
+                        DROP TABLE #Results1; 
+            END;
+            ELSE
+            BEGIN
+                SET NOCOUNT ON;
+                         SELECT(ROW_NUMBER() OVER(
+                               ORDER BY TenChuyenMuc ASC)) AS RowNumber, 
+                              i.MaChuyenMuc, 
+                              i.MaChuyenMucCha, 
+                              i.TenChuyenMuc , 
+                              i.NoiDung
+                        INTO #Results2
+                        FROM Chuyenmuc AS i
+						WHERE ((@machuyenmuc = '') OR (i.MaChuyenMuc = @machuyenmuc)) and ((@machuyenmuccha = '') OR (i.MaChuyenMucCha = @machuyenmuccha));            
+                        SELECT @RecordCount = COUNT(*)
+                        FROM #Results2;
+                        SELECT *, 
+                               @RecordCount AS RecordCount
+                        FROM #Results2;
+                        DROP TABLE #Results2;
+        END;
+    END;
+GO
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_chuyenmuc_delete]    Script Date: 12/10/2023 9:35:38 SA ******/
+create PROCEDURE [dbo].[sp_chuyenmuc_delete]
+(@machuyenmuc             nvarchar(50) 
+)
+AS
+    BEGIN
+		delete from Chuyenmuc where MaChuyenMuc = @machuyenmuc;
+        SELECT '';
+    END;
+GO
+USE [BanAmthanh]
+GO
+
+/****** Object:  StoredProcedure [dbo].[sp_chuyenmuc_update]    Script Date: 12/10/2023 9:42:47 SA ******/
+ALTER PROCEDURE [dbo].[sp_chuyenmuc_update]
+(@machuyenmuc             NVARCHAR(50), 
+ @machuyenmuc_cha       NVARCHAR(50), 
+ @tenchuyenmuc         NVARCHAR(50), 
+ @noidung           NVARCHAR(MAX) 
+)
+AS
+    BEGIN
+   update Chuyenmuc set    
+				MaChuyenMucCha= @machuyenmuc_cha          ,
+				TenChuyenMuc= @tenchuyenmuc           ,
+				NoiDung= @noidung           
+				where MaChuyenMuc = @machuyenmuc;
+        SELECT '';
+    END;
+GO
+
+
+
+
+
+
+
 
 
 
